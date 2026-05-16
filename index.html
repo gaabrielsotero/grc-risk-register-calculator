@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+  <meta name="description" content="GRC Risk Register Calculator — ISO 31000, DORA, NIST RMF, GDPR. Portfolio project by Gabriel Sotero de Almeida, Compliance Analyst.">
+  <meta name="author" content="Gabriel Sotero de Almeida">
+  <meta property="og:title" content="GRC Risk Register Calculator">
+  <meta property="og:description" content="Interactive risk assessment tool aligned with ISO 31000, DORA Art.11, NIST RMF and GDPR. Built for EU Financial Services compliance.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRC Risk Register Calculator | Gabriel Sotero de Almeida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="light"]{
+  --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;
+  --color-surface-offset:#f3f0ec;--color-surface-dynamic:#e6e4df;
+  --color-divider:#dcd9d5;--color-border:#d4d1ca;
+  --color-text:#28251d;--color-text-muted:#7a7974;--color-text-faint:#bab9b4;
+  --color-primary:#01696f;--color-primary-hover:#0c4e54;
+  --color-primary-highlight:#cedcd8;
+  --color-critical-bg:#FCE4D6;--color-critical-fg:#C0392B;
+  --color-high-bg:#FDE9D9;--color-high-fg:#B94A00;
+  --color-medium-bg:#FFF2CC;--color-medium-fg:#B8860B;
+  --color-low-bg:#E2EFDA;--color-low-fg:#276221;
+  --color-accept-bg:#F0E6FF;--color-accept-fg:#6B21A8;
+  --shadow-md:0 4px 12px oklch(0.2 0.01 80/0.08);
+  --shadow-lg:0 12px 32px oklch(0.2 0.01 80/0.12);
+  --radius-sm:0.375rem;--radius-md:0.5rem;--radius-lg:0.75rem;--radius-xl:1rem;
+  --font-body:'Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --text-xs:clamp(0.75rem,0.7rem + 0.25vw,0.875rem);
+  --text-sm:clamp(0.875rem,0.8rem + 0.35vw,1rem);
+  --text-base:clamp(1rem,0.95rem + 0.25vw,1.125rem);
+  --text-lg:clamp(1.125rem,1rem + 0.75vw,1.5rem);
+  --text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
+  --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;
+  --space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;
+  --space-12:3rem;--space-16:4rem;
+}
+[data-theme="dark"]{
+  --color-bg:#0f0f0e;--color-surface:#161614;--color-surface-2:#1c1b19;
+  --color-surface-offset:#1d1c1a;--color-surface-dynamic:#2a2927;
+  --color-divider:#242321;--color-border:#313030;
+  --color-text:#cdccca;--color-text-muted:#797876;--color-text-faint:#4a4948;
+  --color-primary:#4f98a3;--color-primary-hover:#227f8b;
+  --color-primary-highlight:#1e3335;
+  --color-critical-bg:#3a1a1a;--color-critical-fg:#f87171;
+  --color-high-bg:#3a2010;--color-high-fg:#fb923c;
+  --color-medium-bg:#2d2a10;--color-medium-fg:#fbbf24;
+  --color-low-bg:#102d10;--color-low-fg:#4ade80;
+  --color-accept-bg:#2a1a3a;--color-accept-fg:#c084fc;
+  --shadow-md:0 4px 12px oklch(0 0 0/0.3);
+  --shadow-lg:0 12px 32px oklch(0 0 0/0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{min-height:100dvh;font-family:var(--font-body);font-size:var(--text-sm);color:var(--color-text);background:var(--color-bg);line-height:1.6}
+button{cursor:pointer;background:none;border:none;font:inherit;color:inherit}
+input,select{font:inherit;color:inherit}
+
+/* Layout */
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100dvh}
+.sidebar{background:var(--color-surface);border-right:1px solid var(--color-border);padding:var(--space-6) var(--space-4);display:flex;flex-direction:column;gap:var(--space-6);position:sticky;top:0;height:100dvh;overflow-y:auto}
+.main{padding:var(--space-8) var(--space-8);overflow-x:hidden}
+
+/* Header */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-8)}
+.logo{display:flex;align-items:center;gap:var(--space-3)}
+.logo-icon{width:32px;height:32px;color:var(--color-primary)}
+.logo-text{font-size:var(--text-sm);font-weight:700;color:var(--color-text)}
+.logo-sub{font-size:var(--text-xs);color:var(--color-text-muted)}
+.theme-btn{width:36px;height:36px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);transition:all 180ms ease;border:1px solid var(--color-border)}
+.theme-btn:hover{background:var(--color-surface-offset);color:var(--color-text)}
+
+/* Sidebar nav */
+.nav-label{font-size:var(--text-xs);font-weight:600;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:var(--space-2)}
+.nav-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);color:var(--color-text-muted);font-size:var(--text-sm);cursor:pointer;transition:all 150ms ease;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover,.nav-item.active{background:var(--color-surface-offset);color:var(--color-text)}
+.nav-item.active{background:var(--color-primary-highlight);color:var(--color-primary)}
+.nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* KPI Strip */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--space-3);margin-bottom:var(--space-8)}
+.kpi-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);text-align:center}
+.kpi-label{font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-1);font-weight:500}
+.kpi-value{font-size:var(--text-xl);font-weight:700;font-family:var(--font-mono);line-height:1}
+.kpi-total{color:var(--color-primary)}
+.kpi-critical{color:var(--color-critical-fg)}
+.kpi-high{color:var(--color-high-fg)}
+.kpi-medium{color:var(--color-medium-fg)}
+.kpi-low{color:var(--color-low-fg)}
+
+/* Section */
+.section-header{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5)}
+.section-title{font-size:var(--text-lg);font-weight:700;color:var(--color-text)}
+.section-badge{font-size:var(--text-xs);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-weight:600}
+.badge-new{background:var(--color-primary-highlight);color:var(--color-primary)}
+
+/* Risk Form Card */
+.risk-form{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-6);margin-bottom:var(--space-6);box-shadow:var(--shadow-md)}
+.form-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6);padding-bottom:var(--space-4);border-bottom:1px solid var(--color-border)}
+.form-header-left{display:flex;align-items:center;gap:var(--space-3)}
+.risk-id-badge{font-family:var(--font-mono);font-size:var(--text-xs);font-weight:700;padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);background:var(--color-primary-highlight);color:var(--color-primary)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5)}
+.form-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4)}
+.form-group{display:flex;flex-direction:column;gap:var(--space-2)}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.06em}
+.form-label span{font-weight:400;color:var(--color-text-faint);text-transform:none;letter-spacing:0;margin-left:var(--space-1)}
+.form-input,.form-select,.form-textarea{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);font-size:var(--text-sm);color:var(--color-text);transition:border-color 150ms ease,box-shadow 150ms ease;width:100%}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklch,var(--color-primary) 20%,transparent)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.5}
+.form-select{cursor:pointer}
+
+/* Score input special */
+.score-input-wrap{position:relative}
+.score-input{text-align:center;font-family:var(--font-mono);font-size:var(--text-lg);font-weight:700;padding:var(--space-4);background:var(--color-bg);border:2px solid var(--color-border);border-radius:var(--radius-lg);transition:all 180ms ease}
+.score-input:focus{outline:none;border-color:var(--color-primary)}
+.score-hint{font-size:var(--text-xs);color:var(--color-text-faint);text-align:center;margin-top:var(--space-1)}
+
+/* Score display */
+.score-display-row{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);margin-top:var(--space-6);padding-top:var(--space-6);border-top:1px solid var(--color-divider)}
+.score-card{border-radius:var(--radius-lg);padding:var(--space-4);text-align:center;border:2px solid transparent;transition:all 300ms ease}
+.score-card-label{font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--space-2);opacity:.7}
+.score-card-value{font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;line-height:1;margin-bottom:var(--space-2)}
+.score-card-level{font-size:var(--text-xs);font-weight:700;padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);display:inline-block}
+.score-CRITICAL{background:var(--color-critical-bg);border-color:var(--color-critical-fg);color:var(--color-critical-fg)}
+.score-HIGH{background:var(--color-high-bg);border-color:var(--color-high-fg);color:var(--color-high-fg)}
+.score-MEDIUM{background:var(--color-medium-bg);border-color:var(--color-medium-fg);color:var(--color-medium-fg)}
+.score-LOW{background:var(--color-low-bg);border-color:var(--color-low-fg);color:var(--color-low-fg)}
+.score-neutral{background:var(--color-surface-offset);border-color:var(--color-border);color:var(--color-text-muted)}
+
+/* Recommendations */
+.rec-panel{margin-top:var(--space-6);border-radius:var(--radius-lg);padding:var(--space-5);border:1px solid var(--color-border);background:var(--color-surface-2);display:none}
+.rec-panel.visible{display:block;animation:fadeIn 300ms ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.rec-header{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-4);font-weight:700;font-size:var(--text-sm)}
+.rec-list{display:flex;flex-direction:column;gap:var(--space-3)}
+.rec-item{display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border);font-size:var(--text-sm)}
+.rec-icon{width:20px;height:20px;flex-shrink:0;margin-top:2px}
+.rec-text{color:var(--color-text);line-height:1.5}
+.rec-text strong{color:var(--color-primary);font-weight:600}
+
+/* Accept justification box */
+.accept-box{display:none;margin-top:var(--space-4);padding:var(--space-4);border-radius:var(--radius-md);background:var(--color-accept-bg);border:1px solid var(--color-accept-fg);color:var(--color-accept-fg);font-size:var(--text-xs);gap:var(--space-3)}
+.accept-box.visible{display:flex;align-items:flex-start}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-5);border-radius:var(--radius-md);font-size:var(--text-sm);font-weight:600;transition:all 150ms ease;cursor:pointer;border:none}
+.btn-primary{background:var(--color-primary);color:#fff}
+.btn-primary:hover{background:var(--color-primary-hover)}
+.btn-ghost{background:transparent;color:var(--color-text-muted);border:1px solid var(--color-border)}
+.btn-ghost:hover{background:var(--color-surface-offset);color:var(--color-text)}
+.btn-danger{background:var(--color-critical-bg);color:var(--color-critical-fg);border:1px solid var(--color-critical-fg)}
+.btn-danger:hover{opacity:.8}
+.btn-sm{padding:var(--space-2) var(--space-3);font-size:var(--text-xs)}
+.btn-row{display:flex;gap:var(--space-3);margin-top:var(--space-6);flex-wrap:wrap}
+
+/* Risk list table */
+.risk-table{width:100%;border-collapse:collapse;margin-top:var(--space-4)}
+.risk-table th{font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.06em;padding:var(--space-3) var(--space-4);border-bottom:2px solid var(--color-border);text-align:left;white-space:nowrap}
+.risk-table td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--color-divider);font-size:var(--text-sm);vertical-align:middle}
+.risk-table tr:hover td{background:var(--color-surface-offset)}
+.risk-table tr:last-child td{border-bottom:none}
+.level-pill{display:inline-flex;align-items:center;padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:700;white-space:nowrap}
+.level-CRITICAL{background:var(--color-critical-bg);color:var(--color-critical-fg)}
+.level-HIGH{background:var(--color-high-bg);color:var(--color-high-fg)}
+.level-MEDIUM{background:var(--color-medium-bg);color:var(--color-medium-fg)}
+.level-LOW{background:var(--color-low-bg);color:var(--color-low-fg)}
+.score-mono{font-family:var(--font-mono);font-weight:700;font-size:var(--text-sm)}
+
+/* Heat map */
+.heatmap{display:grid;grid-template-columns:auto repeat(5,1fr);gap:3px;max-width:500px}
+.hm-cell{border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:var(--text-xs);font-weight:700;height:44px;transition:all 200ms ease}
+.hm-cell:hover{transform:scale(1.08);z-index:1;position:relative}
+.hm-axis{font-size:var(--text-xs);color:var(--color-text-muted);display:flex;align-items:center;justify-content:center;padding:var(--space-1);white-space:nowrap}
+.hm-score-1{background:var(--color-low-bg);color:var(--color-low-fg)}
+.hm-score-2{background:color-mix(in oklch,var(--color-low-bg) 60%,var(--color-medium-bg));color:var(--color-medium-fg)}
+.hm-score-3{background:var(--color-medium-bg);color:var(--color-medium-fg)}
+.hm-score-4{background:color-mix(in oklch,var(--color-medium-bg) 40%,var(--color-high-bg));color:var(--color-high-fg)}
+.hm-score-5{background:var(--color-high-bg);color:var(--color-high-fg)}
+
+/* Export panel */
+.export-panel{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-6);margin-top:var(--space-8)}
+.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--space-16) var(--space-8);color:var(--color-text-muted)}
+.empty-icon{width:48px;height:48px;margin-bottom:var(--space-4);color:var(--color-text-faint);opacity:.5}
+.empty-state h3{color:var(--color-text);margin-bottom:var(--space-2);font-size:var(--text-base)}
+.empty-state p{max-width:36ch;font-size:var(--text-sm)}
+
+/* Views */
+.view{display:none}.view.active{display:block}
+
+/* Trend badge */
+.trend-up{color:var(--color-critical-fg);font-size:var(--text-xs);font-weight:700}
+.trend-down{color:var(--color-low-fg);font-size:var(--text-xs);font-weight:700}
+.trend-stable{color:var(--color-text-faint);font-size:var(--text-xs);font-weight:700}
+
+/* Mobile */
+@media(max-width:768px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .form-grid,.form-grid-3{grid-template-columns:1fr}
+  .score-display-row{grid-template-columns:1fr}
+  .main{padding:var(--space-4)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 32 32" fill="none" aria-label="GRC Calc Logo">
+          <rect x="2" y="2" width="28" height="28" rx="6" fill="currentColor" opacity=".15"/>
+          <path d="M8 16a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H8z" fill="currentColor"/>
+          <path d="M16 8a8 8 0 0 1 8 8h-4a4 4 0 0 0-4-4V8z" fill="currentColor" opacity=".6"/>
+          <circle cx="16" cy="22" r="3" fill="currentColor"/>
+        </svg>
+        <div>
+          <div class="logo-text">GRC Risk Register Calculator</div>
+          <div class="logo-sub">v1.0 · ISO 31000 · DORA · NIST</div>
+        </div>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-label">Navigation</div>
+      <button class="nav-item active" onclick="showView('add')" id="nav-add">
+        <svg class="nav-dot" style="background:var(--color-primary)" viewBox="0 0 8 8"></svg>
+        Add / Calculate Risk
+      </button>
+      <button class="nav-item" onclick="showView('register')" id="nav-register">
+        <svg class="nav-dot" style="background:var(--color-high-fg)" viewBox="0 0 8 8"></svg>
+        Risk Register
+      </button>
+      <button class="nav-item" onclick="showView('heatmap')" id="nav-heatmap">
+        <svg class="nav-dot" style="background:var(--color-medium-fg)" viewBox="0 0 8 8"></svg>
+        Heat Map
+      </button>
+      <button class="nav-item" onclick="showView('export')" id="nav-export">
+        <svg class="nav-dot" style="background:var(--color-low-fg)" viewBox="0 0 8 8"></svg>
+        Export / Report
+      </button>
+    </nav>
+    <div style="margin-top:auto">
+      <div class="nav-label" style="margin-bottom:var(--space-3)">Framework</div>
+      <div style="font-size:var(--text-xs);color:var(--color-text-faint);line-height:1.8">
+        NIST RMF · ISO 31000<br>ISO 27001:2022 Annex A<br>GDPR · EU AML · PSD2<br>FATF Recommendations
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div>
+        <div style="font-size:var(--text-xl);font-weight:700" id="page-title">Add & Calculate Risk</div>
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted)" id="page-sub">Enter scores → get instant risk level, residual calculation & GRC recommendations</div>
+      </div>
+      <button class="theme-btn" data-theme-toggle aria-label="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+
+    <!-- KPI Strip -->
+    <div class="kpi-strip">
+      <div class="kpi-card"><div class="kpi-label">Total Risks</div><div class="kpi-value kpi-total" id="kpi-total">0</div></div>
+      <div class="kpi-card"><div class="kpi-label">🔴 Critical</div><div class="kpi-value kpi-critical" id="kpi-critical">0</div></div>
+      <div class="kpi-card"><div class="kpi-label">🟠 High</div><div class="kpi-value kpi-high" id="kpi-high">0</div></div>
+      <div class="kpi-card"><div class="kpi-label">🟡 Medium</div><div class="kpi-value kpi-medium" id="kpi-medium">0</div></div>
+      <div class="kpi-card"><div class="kpi-label">🟢 Low</div><div class="kpi-value kpi-low" id="kpi-low">0</div></div>
+    </div>
+
+    <!-- VIEW: ADD RISK -->
+    <div class="view active" id="view-add">
+      <div class="section-header">
+        <div class="section-title">Risk Assessment Calculator</div>
+        <span class="section-badge badge-new">ISO 31000 Methodology</span>
+      </div>
+
+      <div class="risk-form">
+        <div class="form-header">
+          <div class="form-header-left">
+            <span class="risk-id-badge" id="current-rid">R-001</span>
+            <span style="font-size:var(--text-sm);color:var(--color-text-muted)">New Risk Assessment</span>
+          </div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-faint)">Fields marked * are required</div>
+        </div>
+
+        <!-- Basic Info -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Risk Name *</label>
+            <input class="form-input" id="f-name" placeholder="e.g. Inadequate AML transaction monitoring" type="text">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select class="form-select" id="f-cat">
+              <option value="">Select category...</option>
+              <option>Financial Crime / AML</option>
+              <option>Data Privacy / GDPR</option>
+              <option>IAM / Cybersecurity</option>
+              <option>Third-Party / Vendor</option>
+              <option>Operational / BCP</option>
+              <option>Regulatory / Compliance</option>
+              <option>Fraud / Cybersecurity</option>
+              <option>Insider Risk</option>
+              <option>KYC / EDD</option>
+              <option>Technical / Infrastructure</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Description <span>(optional but recommended)</span></label>
+            <textarea class="form-textarea" id="f-desc" placeholder="Describe the risk scenario, threat source, and potential business impact..."></textarea>
+          </div>
+        </div>
+
+        <!-- Inherent Scores -->
+        <div style="margin-top:var(--space-6);margin-bottom:var(--space-3)">
+          <div style="font-size:var(--text-sm);font-weight:700;color:var(--color-text);margin-bottom:var(--space-1)">Step 1 — Inherent Risk Score</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted)">Score BEFORE any controls exist. Represents the raw business risk.</div>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label">Inherent Likelihood * <span>1 (rare) → 5 (almost certain)</span></label>
+            <input class="form-input score-input" id="f-ilkh" type="number" min="1" max="5" placeholder="1–5" oninput="calc()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Inherent Impact * <span>1 (minimal) → 5 (catastrophic)</span></label>
+            <input class="form-input score-input" id="f-iimp" type="number" min="1" max="5" placeholder="1–5" oninput="calc()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Existing Controls <span>(describe briefly)</span></label>
+            <input class="form-input" id="f-ctrl" type="text" placeholder="e.g. Basic transaction monitoring rules">
+          </div>
+        </div>
+
+        <!-- Control Effectiveness -->
+        <div style="margin-top:var(--space-5);margin-bottom:var(--space-3)">
+          <div style="font-size:var(--text-sm);font-weight:700;color:var(--color-text);margin-bottom:var(--space-1)">Step 2 — Control Effectiveness & Residual Risk</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted)">Residual Risk = Residual Likelihood × Residual Impact (ISO 31000 correct methodology)</div>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label">Control Effectiveness <span>1=strong, 2=partial, 3=weak</span></label>
+            <select class="form-select" id="f-ceff" onchange="calc()">
+              <option value="">Select...</option>
+              <option value="1">1 — Strong (well-tested, documented)</option>
+              <option value="2">2 — Partial (exists but gaps identified)</option>
+              <option value="3">3 — Weak / None (missing or untested)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Residual Likelihood * <span>after controls</span></label>
+            <input class="form-input score-input" id="f-rlkh" type="number" min="1" max="5" placeholder="1–5" oninput="calc()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Residual Impact * <span>after controls</span></label>
+            <input class="form-input score-input" id="f-rimp" type="number" min="1" max="5" placeholder="1–5" oninput="calc()">
+          </div>
+        </div>
+
+        <!-- Ownership -->
+        <div style="margin-top:var(--space-5)">
+          <div style="font-size:var(--text-sm);font-weight:700;color:var(--color-text);margin-bottom:var(--space-3)">Step 3 — Ownership & Treatment</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Risk Owner</label>
+            <input class="form-input" id="f-owner" type="text" placeholder="e.g. CISO, Compliance Officer, DPO">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Risk Treatment *</label>
+            <select class="form-select" id="f-treatment" onchange="onTreatmentChange()">
+              <option value="">Select treatment...</option>
+              <option value="Mitigate">Mitigate — implement or strengthen controls</option>
+              <option value="Transfer">Transfer — insurance or contract (SLA)</option>
+              <option value="Accept">Accept — formally accepted (cost > benefit)</option>
+              <option value="Avoid">Avoid — eliminate the activity generating the risk</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Regulatory Reference</label>
+            <input class="form-input" id="f-reg" type="text" placeholder="e.g. GDPR Art. 32 · FATF Rec. 10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ISO 27001:2022 Annex A Ref.</label>
+            <input class="form-input" id="f-iso" type="text" placeholder="e.g. A.5.15 · A.8.2">
+          </div>
+        </div>
+
+        <!-- Accept justification -->
+        <div class="accept-box" id="accept-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div>
+            <div style="font-weight:700;margin-bottom:var(--space-2)">Risk Acceptance requires formal justification</div>
+            <textarea class="form-textarea" id="f-accept-just" placeholder="Required: Document cost-benefit analysis. Example: 'Control cost €380k/yr vs Expected Annual Loss €42k/yr (factor 9x). Formally accepted by CRO on [date]. Review date: [quarter].' " style="min-height:70px;background:var(--color-bg);border-color:var(--color-accept-fg)"></textarea>
+          </div>
+        </div>
+
+        <!-- Score Results -->
+        <div class="score-display-row">
+          <div class="score-card score-neutral" id="inh-card">
+            <div class="score-card-label">Inherent Risk Score</div>
+            <div class="score-card-value" id="inh-score">—</div>
+            <span class="score-card-level" id="inh-level" style="background:var(--color-surface-offset);color:var(--color-text-muted)">Enter scores</span>
+          </div>
+          <div class="score-card score-neutral" id="ctrl-card">
+            <div class="score-card-label">Control Reduction</div>
+            <div class="score-card-value" id="ctrl-reduction">—</div>
+            <span class="score-card-level" id="ctrl-label" style="background:var(--color-surface-offset);color:var(--color-text-muted)">Effectiveness</span>
+          </div>
+          <div class="score-card score-neutral" id="res-card">
+            <div class="score-card-label">Residual Risk Score</div>
+            <div class="score-card-value" id="res-score">—</div>
+            <span class="score-card-level" id="res-level" style="background:var(--color-surface-offset);color:var(--color-text-muted)">Final level</span>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="rec-panel" id="rec-panel">
+          <div class="rec-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            GRC Recommendations
+          </div>
+          <div class="rec-list" id="rec-list"></div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addRisk()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add to Register
+          </button>
+          <button class="btn btn-ghost" onclick="clearForm()">Clear Form</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: RISK REGISTER -->
+    <div class="view" id="view-register">
+      <div class="section-header">
+        <div class="section-title">Risk Register</div>
+        <span class="section-badge badge-new" id="register-count-badge">0 risks</span>
+      </div>
+      <div id="register-content">
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <h3>No risks added yet</h3>
+          <p>Add your first risk in the calculator to see it here</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: HEAT MAP -->
+    <div class="view" id="view-heatmap">
+      <div class="section-header">
+        <div class="section-title">Risk Heat Map</div>
+        <span class="section-badge badge-new">Likelihood × Impact</span>
+      </div>
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-8)">
+        <div style="margin-bottom:var(--space-6)">
+          <div style="font-size:var(--text-sm);font-weight:600;margin-bottom:var(--space-1)">Inherent Risk Heat Map</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted)">Each cell shows Score = Likelihood × Impact. Your risks are plotted as dots.</div>
+        </div>
+        <div id="heatmap-inherent"></div>
+        <div style="margin-top:var(--space-8);margin-bottom:var(--space-6)">
+          <div style="font-size:var(--text-sm);font-weight:600;margin-bottom:var(--space-1)">Residual Risk Heat Map</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted)">After controls applied. Compare with inherent to see control effectiveness.</div>
+        </div>
+        <div id="heatmap-residual"></div>
+        <div style="margin-top:var(--space-6);display:flex;gap:var(--space-4);flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-xs)"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-critical-bg);border:1px solid var(--color-critical-fg)"></div>CRITICAL ≥16</div>
+          <div style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-xs)"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-high-bg);border:1px solid var(--color-high-fg)"></div>HIGH 10–15</div>
+          <div style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-xs)"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-medium-bg);border:1px solid var(--color-medium-fg)"></div>MEDIUM 5–9</div>
+          <div style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-xs)"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-low-bg);border:1px solid var(--color-low-fg)"></div>LOW 1–4</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: EXPORT -->
+    <div class="view" id="view-export">
+      <div class="section-header">
+        <div class="section-title">Export & Report</div>
+      </div>
+      <div class="export-panel">
+        <div style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-2)">Export Risk Register</div>
+        <div style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-6)">Download your risk register as CSV for import into Excel, Google Sheets, or your GRC tool.</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="exportCSV()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download CSV
+          </button>
+          <button class="btn btn-ghost" onclick="exportJSON()">Download JSON</button>
+          <button class="btn btn-danger" onclick="clearAll()">Clear All Risks</button>
+        </div>
+      </div>
+      <div id="export-preview" style="margin-top:var(--space-6)"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// Demo risks pre-loaded for portfolio demonstration
+let risks = [
+  {
+    id: "R-001",
+    name: "Inadequate AML Transaction Monitoring",
+    cat: "Financial Crime (AML)",
+    desc: "Automated TM rules fail to detect layering and structuring typologies in high-volume retail payments, increasing regulatory exposure under EU AML Directive.",
+    ilkh: 4, iimp: 5, inhScore: 20, inhLevel: "CRITICAL",
+    ctrl: "Basic rule-based TM system, quarterly review",
+    ceff: 3,
+    rlkh: 2, rimp: 4, resScore: 8, resLevel: "MEDIUM",
+    treatment: "Mitigate",
+    acceptJust: "",
+    owner: "MLRO / Compliance Officer",
+    reg: "FATF Rec. 10 / EU AML Dir. Art. 18 / AMLD6",
+    iso: "A.5.30 / A.8.16",
+    recs: [],
+    date: "2026-05-17"
+  },
+  {
+    id: "R-002",
+    name: "GDPR Data Subject Access Request Backlog",
+    cat: "Data Privacy (GDPR)",
+    desc: "Volume of DSARs exceeding operational capacity, with risk of breaching 30-day response deadline under GDPR Art. 12, exposing the entity to DPA enforcement.",
+    ilkh: 3, iimp: 4, inhScore: 12, inhLevel: "HIGH",
+    ctrl: "Manual DSAR tracking via spreadsheet",
+    ceff: 3,
+    rlkh: 2, rimp: 3, resScore: 6, resLevel: "MEDIUM",
+    treatment: "Mitigate",
+    acceptJust: "",
+    owner: "DPO",
+    reg: "GDPR Art. 12 / Art. 15 / EDPB Guidelines 01/2022",
+    iso: "A.5.34",
+    recs: [],
+    date: "2026-05-17"
+  },
+  {
+    id: "R-003",
+    name: "Third-Party ICT Vendor Without DORA Compliance",
+    cat: "Third-Party / Vendor",
+    desc: "Critical payment processing vendor lacks documented ICT resilience plan and has not completed DORA-required contractual arrangements, creating concentration risk.",
+    ilkh: 3, iimp: 5, inhScore: 15, inhLevel: "HIGH",
+    ctrl: "Annual vendor questionnaire, no on-site audit",
+    ceff: 2,
+    rlkh: 2, rimp: 4, resScore: 8, resLevel: "MEDIUM",
+    treatment: "Mitigate",
+    acceptJust: "",
+    owner: "CISO / Vendor Risk Manager",
+    reg: "DORA Art. 28 / Art. 30 / EBA RTS on ICT Third-Party Risk",
+    iso: "A.5.19 / A.5.20 / A.5.21",
+    recs: [],
+    date: "2026-05-17"
+  },
+  {
+    id: "R-004",
+    name: "Privileged Access Management — No MFA Enforcement",
+    cat: "IAM (Cybersecurity)",
+    desc: "Privileged accounts on core banking systems lack mandatory MFA, creating insider threat and credential compromise exposure inconsistent with ISO 27001 A.5.15 requirements.",
+    ilkh: 3, iimp: 4, inhScore: 12, inhLevel: "HIGH",
+    ctrl: "Password policy only, no MFA",
+    ceff: 3,
+    rlkh: 1, rimp: 3, resScore: 3, resLevel: "LOW",
+    treatment: "Mitigate",
+    acceptJust: "",
+    owner: "CISO / IAM Team",
+    reg: "NIS2 Art. 21 / DORA Art. 9 / ISO 27001 A.8.2",
+    iso: "A.5.15 / A.5.16 / A.8.2",
+    recs: [],
+    date: "2026-05-17"
+  }
+];;
+
+let editingId = null;
+
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+(function(){
+  const btn = document.querySelector('[data-theme-toggle]');
+  const html = document.documentElement;
+  let dark = true;
+  html.setAttribute('data-theme','dark');
+  btn && btn.addEventListener('click', () => {
+    dark = !dark;
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    btn.innerHTML = dark
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  });
+})();
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('nav-'+v).classList.add('active');
+  const titles = {add:'Add & Calculate Risk',register:'Risk Register',heatmap:'Risk Heat Map',export:'Export & Report'};
+  const subs = {add:'Enter scores → get instant risk level, residual calculation & GRC recommendations',register:'All risks added to your session register',heatmap:'Visual Likelihood × Impact matrix with your risks plotted',export:'Download CSV or JSON for Excel / Google Sheets'};
+  document.getElementById('page-title').textContent = titles[v];
+  document.getElementById('page-sub').textContent = subs[v];
+  if(v==='register') renderRegister();
+  if(v==='heatmap') renderHeatmaps();
+  if(v==='export') renderExportPreview();
+}
+
+// ── Risk Level ────────────────────────────────────────────────────────────────
+function getLevel(score) {
+  if(score >= 16) return 'CRITICAL';
+  if(score >= 10) return 'HIGH';
+  if(score >= 5) return 'MEDIUM';
+  return 'LOW';
+}
+
+function getEffLabel(eff) {
+  return {1:'Strong',2:'Partial',3:'Weak / None'}[eff] || '—';
+}
+
+// ── Recommendations engine ────────────────────────────────────────────────────
+function getRecommendations(risk) {
+  const recs = [];
+  const {resLevel, resScore, inh, res, cat, treatment, ceff} = risk;
+
+  if(resLevel === 'CRITICAL') {
+    recs.push({icon:'🚨', text:'<strong>Immediate escalation required.</strong> Per Risk Appetite policy, CRITICAL risks cannot be ACCEPT. Escalate to CISO and CRO within 24 hours. Mandatory treatment plan with 30-day deadline.'});
+  }
+  if(resLevel === 'HIGH' && treatment === 'Accept') {
+    recs.push({icon:'⚠️', text:'<strong>HIGH risk with ACCEPT treatment</strong> requires CRO written approval and formal justification. Ensure cost-benefit analysis documents Expected Annual Loss vs control cost.'});
+  }
+  if(inh - res > 0) {
+    const reduction = Math.round(((inh-res)/inh)*100);
+    recs.push({icon:'📉', text:`Controls reduced risk score from <strong>${inh} → ${res}</strong> (${reduction}% reduction). ${ceff==1?'Controls are strong — maintain and test annually.':ceff==2?'Controls are partially effective — identify and close gaps.':'Controls are weak — prioritize implementation.'}`});
+  }
+  if(cat && cat.includes('AML')) {
+    recs.push({icon:'🏦', text:'<strong>AML/Financial Crime risk:</strong> Apply FATF risk-based approach. Ensure transaction monitoring rules cover layering, structuring, and smurfing typologies. MLRO escalation SLA ≤ 24h. Evidence: TM rule calibration log.'});
+  }
+  if(cat && cat.includes('GDPR') || cat && cat.includes('Data Privacy')) {
+    recs.push({icon:'🔒', text:'<strong>GDPR/Data Privacy risk:</strong> Verify legal basis for processing (Art. 6), retention schedules (Art. 5(1)(e)), and DPIA if high-risk (Art. 35). DPO must review. Map to ISO 27001 A.5.34.'});
+  }
+  if(cat && cat.includes('IAM')) {
+    recs.push({icon:'🔑', text:'<strong>IAM risk:</strong> Enforce MFA on 100% of privileged accounts. Quarterly access certification. Automate leaver revocation within 4h of HR notification. Map to ISO 27001 A.5.15, A.8.2.'});
+  }
+  if(cat && cat.includes('Third-Party') || cat && cat.includes('Vendor')) {
+    recs.push({icon:'🤝', text:'<strong>Third-party risk:</strong> Obtain SOC 2 Type II or ISO 27001 certification from vendor. Ensure DPA signed per GDPR Art. 28. Include right-to-audit clause and breach notification SLA ≤ 72h.'});
+  }
+  if(cat && cat.includes('KYC') || cat && cat.includes('EDD')) {
+    recs.push({icon:'🔍', text:'<strong>KYC/EDD risk:</strong> Implement tiered onboarding: Standard CDD for low-risk, EDD for high-risk categories per EU AML Dir. Art. 18. Quarterly re-screening of high-risk portfolio. Adverse media screening mandatory.'});
+  }
+  if(cat && cat.includes('Operational') || cat && cat.includes('BCP')) {
+    recs.push({icon:'⚙️', text:'<strong>Operational/BCP risk:</strong> Validate RTO/RPO targets annually via tabletop exercises. DORA Art. 11 requires documented ICT continuity plans. Test recovery, not just documentation.'});
+  }
+  if(treatment === 'Accept') {
+    recs.push({icon:'📋', text:'<strong>Risk Acceptance:</strong> Document in Risk Acceptance Register with: (1) cost-benefit analysis, (2) Expected Annual Loss calculation, (3) named approver, (4) mandatory review date. Per policy: ACCEPT valid only for MEDIUM and LOW.'});
+  }
+  if(treatment === 'Transfer') {
+    recs.push({icon:'📄', text:'<strong>Risk Transfer:</strong> Verify insurance coverage matches risk materiality. Validate SLA contractually enforces the transfer. Residual risk remains — document what is NOT covered by the transfer mechanism.'});
+  }
+  if(resScore <= 4 && inh >= 10) {
+    recs.push({icon:'✅', text:`<strong>Good control effectiveness.</strong> Inherent risk was ${getLevel(inh)} but controls reduced to LOW. Maintain controls and test effectiveness annually. Document evidence for next audit.`});
+  }
+  if(recs.length === 0) {
+    recs.push({icon:'📝', text:'Add category and treatment to get specific GRC recommendations based on NIST RMF and ISO 31000 methodology.'});
+  }
+  return recs;
+}
+
+// ── Treatment change ──────────────────────────────────────────────────────────
+function onTreatmentChange() {
+  const t = document.getElementById('f-treatment').value;
+  const box = document.getElementById('accept-box');
+  box.classList.toggle('visible', t === 'Accept');
+  calc();
+}
+
+// ── Main calculation ──────────────────────────────────────────────────────────
+function calc() {
+  const ilkh = parseInt(document.getElementById('f-ilkh').value) || 0;
+  const iimp = parseInt(document.getElementById('f-iimp').value) || 0;
+  const rlkh = parseInt(document.getElementById('f-rlkh').value) || 0;
+  const rimp = parseInt(document.getElementById('f-rimp').value) || 0;
+  const ceff = parseInt(document.getElementById('f-ceff').value) || 0;
+
+  const inhScore = ilkh * iimp;
+  const resScore = rlkh * rimp;
+  const inhLevel = inhScore > 0 ? getLevel(inhScore) : null;
+  const resLevel = resScore > 0 ? getLevel(resScore) : null;
+
+  // Inherent card
+  const inhCard = document.getElementById('inh-card');
+  const inhScoreEl = document.getElementById('inh-score');
+  const inhLevelEl = document.getElementById('inh-level');
+  if(inhScore > 0) {
+    inhScoreEl.textContent = inhScore;
+    inhLevelEl.textContent = inhLevel;
+    inhCard.className = 'score-card score-' + inhLevel;
+    inhLevelEl.style = '';
+  } else {
+    inhScoreEl.textContent = '—'; inhLevelEl.textContent = 'Enter scores';
+    inhCard.className = 'score-card score-neutral';
+    inhLevelEl.style = 'background:var(--color-surface-offset);color:var(--color-text-muted)';
+  }
+
+  // Control card
+  const ctrlCard = document.getElementById('ctrl-card');
+  const ctrlEl = document.getElementById('ctrl-reduction');
+  const ctrlLbl = document.getElementById('ctrl-label');
+  if(ceff > 0) {
+    ctrlEl.textContent = getEffLabel(ceff);
+    ctrlLbl.textContent = 'Effectiveness';
+    ctrlCard.className = 'score-card ' + (ceff==1?'score-LOW':ceff==2?'score-MEDIUM':'score-HIGH');
+    ctrlLbl.style = '';
+  } else {
+    ctrlEl.textContent = '—'; ctrlLbl.textContent = 'Effectiveness';
+    ctrlCard.className = 'score-card score-neutral';
+    ctrlLbl.style = 'background:var(--color-surface-offset);color:var(--color-text-muted)';
+  }
+
+  // Residual card
+  const resCard = document.getElementById('res-card');
+  const resScoreEl = document.getElementById('res-score');
+  const resLevelEl = document.getElementById('res-level');
+  if(resScore > 0) {
+    resScoreEl.textContent = resScore;
+    resLevelEl.textContent = resLevel;
+    resCard.className = 'score-card score-' + resLevel;
+    resLevelEl.style = '';
+  } else {
+    resScoreEl.textContent = '—'; resLevelEl.textContent = 'Final level';
+    resCard.className = 'score-card score-neutral';
+    resLevelEl.style = 'background:var(--color-surface-offset);color:var(--color-text-muted)';
+  }
+
+  // Recommendations
+  const panel = document.getElementById('rec-panel');
+  if(inhScore > 0 || resScore > 0) {
+    const tmpRisk = {
+      inh: inhScore, res: resScore,
+      resLevel, resScore,
+      cat: document.getElementById('f-cat').value,
+      treatment: document.getElementById('f-treatment').value,
+      ceff
+    };
+    const recs = getRecommendations(tmpRisk);
+    document.getElementById('rec-list').innerHTML = recs.map(r =>
+      `<div class="rec-item"><span style="font-size:1.2em;line-height:1;flex-shrink:0">${r.icon}</span><div class="rec-text">${r.text}</div></div>`
+    ).join('');
+    panel.classList.add('visible');
+  } else {
+    panel.classList.remove('visible');
+  }
+}
+
+// ── Add risk to register ──────────────────────────────────────────────────────
+function addRisk() {
+  const name = document.getElementById('f-name').value.trim();
+  const cat  = document.getElementById('f-cat').value;
+  const ilkh = parseInt(document.getElementById('f-ilkh').value);
+  const iimp = parseInt(document.getElementById('f-iimp').value);
+  const rlkh = parseInt(document.getElementById('f-rlkh').value);
+  const rimp = parseInt(document.getElementById('f-rimp').value);
+  const treatment = document.getElementById('f-treatment').value;
+
+  if(!name || !cat || !ilkh || !iimp || !rlkh || !rimp || !treatment) {
+    alert('Please fill in: Risk Name, Category, all 4 score fields, and Risk Treatment.');
+    return;
+  }
+  const inhScore = ilkh * iimp;
+  const resScore = rlkh * rimp;
+  const risk = {
+    id: editingId || 'R-' + String(risks.length + 1).padStart(3,'0'),
+    name, cat,
+    desc: document.getElementById('f-desc').value.trim(),
+    ilkh, iimp, inhScore, inhLevel: getLevel(inhScore),
+    ctrl: document.getElementById('f-ctrl').value.trim(),
+    ceff: parseInt(document.getElementById('f-ceff').value) || null,
+    rlkh, rimp, resScore, resLevel: getLevel(resScore),
+    treatment,
+    acceptJust: document.getElementById('f-accept-just').value.trim(),
+    owner: document.getElementById('f-owner').value.trim(),
+    reg: document.getElementById('f-reg').value.trim(),
+    iso: document.getElementById('f-iso').value.trim(),
+    recs: getRecommendations({inh:inhScore,res:resScore,resLevel:getLevel(resScore),resScore,cat,treatment,ceff:parseInt(document.getElementById('f-ceff').value)||0}),
+    date: new Date().toISOString().split('T')[0]
+  };
+
+  if(editingId) {
+    const idx = risks.findIndex(r => r.id === editingId);
+    risks[idx] = risk;
+    editingId = null;
+  } else {
+    risks.push(risk);
+  }
+
+  updateKPIs();
+  clearForm();
+  showView('register');
+}
+
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+function updateKPIs() {
+  document.getElementById('kpi-total').textContent = risks.length;
+  ['CRITICAL','HIGH','MEDIUM','LOW'].forEach(l => {
+    document.getElementById('kpi-'+l.toLowerCase()).textContent = risks.filter(r => r.resLevel === l).length;
+  });
+  document.getElementById('register-count-badge').textContent = risks.length + ' risk' + (risks.length!==1?'s':'');
+}
+
+// ── Render Register ───────────────────────────────────────────────────────────
+function renderRegister() {
+  const el = document.getElementById('register-content');
+  if(!risks.length) {
+    el.innerHTML = `<div class="empty-state"><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><h3>No risks added yet</h3><p>Add your first risk in the calculator</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div style="overflow-x:auto"><table class="risk-table">
+    <thead><tr>
+      <th>ID</th><th>Risk Name</th><th>Category</th>
+      <th>Inh. Score</th><th>Inh. Level</th>
+      <th>Res. Score</th><th>Res. Level</th>
+      <th>Treatment</th><th>Owner</th><th>Actions</th>
+    </tr></thead>
+    <tbody>${risks.map(r => `<tr>
+      <td><span style="font-family:var(--font-mono);font-size:var(--text-xs);font-weight:700;color:var(--color-primary)">${r.id}</span></td>
+      <td style="max-width:200px"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name}</div>${r.desc?`<div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">${r.desc}</div>`:''}
+      </td>
+      <td style="font-size:var(--text-xs);color:var(--color-text-muted);white-space:nowrap">${r.cat}</td>
+      <td class="score-mono">${r.inhScore}</td>
+      <td><span class="level-pill level-${r.inhLevel}">${r.inhLevel}</span></td>
+      <td class="score-mono">${r.resScore}</td>
+      <td><span class="level-pill level-${r.resLevel}">${r.resLevel}</span></td>
+      <td style="font-size:var(--text-xs);font-weight:600">${r.treatment}</td>
+      <td style="font-size:var(--text-xs);color:var(--color-text-muted)">${r.owner||'—'}</td>
+      <td>
+        <div style="display:flex;gap:var(--space-2)">
+          <button class="btn btn-ghost btn-sm" onclick="editRisk('${r.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRisk('${r.id}')">Del</button>
+        </div>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table></div>
+  <div style="margin-top:var(--space-6)">
+    ${risks.map(r => r.recs.length ? `
+    <details style="margin-bottom:var(--space-3);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+      <summary style="padding:var(--space-4);cursor:pointer;font-size:var(--text-sm);font-weight:600;display:flex;align-items:center;gap:var(--space-2)">
+        <span class="level-pill level-${r.resLevel}" style="font-size:var(--text-xs)">${r.id}</span>
+        ${r.name} — GRC Recommendations (${r.recs.length})
+      </summary>
+      <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3)">
+        ${r.recs.map(rec => `<div class="rec-item"><span style="font-size:1.2em;flex-shrink:0">${rec.icon}</span><div class="rec-text">${rec.text}</div></div>`).join('')}
+      </div>
+    </details>` : '').join('')}
+  </div>`;
+}
+
+// ── Heat maps ─────────────────────────────────────────────────────────────────
+function renderHeatmap(containerId, lkhKey, impKey) {
+  const container = document.getElementById(containerId);
+  const impLabels = ['5 (Critical)','4 (High)','3 (Medium)','2 (Low)','1 (V.Low)'];
+  const lkhLabels = ['1 (V.Low)','2 (Low)','3 (Medium)','4 (High)','5 (Critical)'];
+  let html = '<div class="heatmap">';
+  // Top-left corner
+  html += `<div class="hm-axis" style="font-size:10px;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);padding:var(--space-2)">← Impact →</div>`;
+  // Header row
+  lkhLabels.forEach(l => html += `<div class="hm-axis" style="font-size:10px;text-align:center">${l}</div>`);
+  // Rows
+  for(let imp = 5; imp >= 1; imp--) {
+    html += `<div class="hm-axis" style="font-size:10px;text-align:right;padding-right:var(--space-2)">${impLabels[5-imp]}</div>`;
+    for(let lkh = 1; lkh <= 5; lkh++) {
+      const score = lkh * imp;
+      const level = getLevel(score);
+      const plotted = risks.filter(r => r[lkhKey]===lkh && r[impKey]===imp);
+      const hmc = level==='CRITICAL'?5:level==='HIGH'?4:level==='MEDIUM'?3:level==='LOW'?2:1;
+      html += `<div class="hm-cell hm-score-${hmc}" title="${plotted.map(r=>r.id+': '+r.name).join(', ')||'No risks here'}">
+        ${score}${plotted.length?`<span style="margin-left:3px;background:rgba(0,0,0,.25);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${plotted.length}</span>`:''}
+      </div>`;
+    }
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderHeatmaps() {
+  renderHeatmap('heatmap-inherent', 'ilkh', 'iimp');
+  renderHeatmap('heatmap-residual', 'rlkh', 'rimp');
+}
+
+// ── Edit / Delete ─────────────────────────────────────────────────────────────
+function editRisk(id) {
+  const r = risks.find(x => x.id === id);
+  if(!r) return;
+  editingId = id;
+  document.getElementById('f-name').value = r.name;
+  document.getElementById('f-cat').value = r.cat;
+  document.getElementById('f-desc').value = r.desc;
+  document.getElementById('f-ilkh').value = r.ilkh;
+  document.getElementById('f-iimp').value = r.iimp;
+  document.getElementById('f-rlkh').value = r.rlkh;
+  document.getElementById('f-rimp').value = r.rimp;
+  document.getElementById('f-ctrl').value = r.ctrl;
+  document.getElementById('f-ceff').value = r.ceff || '';
+  document.getElementById('f-treatment').value = r.treatment;
+  document.getElementById('f-owner').value = r.owner;
+  document.getElementById('f-reg').value = r.reg;
+  document.getElementById('f-iso').value = r.iso;
+  document.getElementById('f-accept-just').value = r.acceptJust || '';
+  document.getElementById('current-rid').textContent = id;
+  onTreatmentChange();
+  calc();
+  showView('add');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteRisk(id) {
+  if(!confirm('Delete risk ' + id + '?')) return;
+  risks = risks.filter(r => r.id !== id);
+  updateKPIs();
+  renderRegister();
+}
+
+// ── Clear / Export ────────────────────────────────────────────────────────────
+function clearForm() {
+  ['f-name','f-cat','f-desc','f-ilkh','f-iimp','f-rlkh','f-rimp','f-ctrl','f-ceff','f-treatment','f-owner','f-reg','f-iso','f-accept-just']
+    .forEach(id => document.getElementById(id).value = '');
+  editingId = null;
+  document.getElementById('accept-box').classList.remove('visible');
+  document.getElementById('rec-panel').classList.remove('visible');
+  ['inh-card','ctrl-card','res-card'].forEach(id => document.getElementById(id).className = 'score-card score-neutral');
+  document.getElementById('inh-score').textContent='—';
+  document.getElementById('res-score').textContent='—';
+  document.getElementById('ctrl-reduction').textContent='—';
+  document.getElementById('current-rid').textContent = 'R-' + String(risks.length+1).padStart(3,'0');
+}
+
+function clearAll() {
+  if(!confirm('Delete ALL risks? This cannot be undone.')) return;
+  risks = []; updateKPIs(); renderRegister();
+}
+
+function exportCSV() {
+  const cols = ['ID','Risk Name','Category','Description','Inh. Likelihood','Inh. Impact','Inherent Score','Inherent Level','Existing Controls','Control Effectiveness','Residual Likelihood','Residual Impact','Residual Score','Residual Level','Treatment','Accept Justification','ISO 27001 Ref','Regulatory Ref','Risk Owner','Date'];
+  const rows = risks.map(r => [r.id,r.name,r.cat,r.desc,r.ilkh,r.iimp,r.inhScore,r.inhLevel,r.ctrl,r.ceff||'',r.rlkh,r.rimp,r.resScore,r.resLevel,r.treatment,r.acceptJust,r.iso,r.reg,r.owner,r.date].map(v=>`"${String(v||'').replace(/"/g,'""')}"`));
+  const csv = [cols.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='GRC_Risk_Register.csv'; a.click();
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(risks,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='GRC_Risk_Register.json'; a.click();
+}
+
+function renderExportPreview() {
+  const el = document.getElementById('export-preview');
+  if(!risks.length) { el.innerHTML=''; return; }
+  el.innerHTML = `<div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);padding:var(--space-6)">
+    <div style="font-size:var(--text-sm);font-weight:700;margin-bottom:var(--space-4)">Session Summary</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4)">
+      ${['CRITICAL','HIGH','MEDIUM','LOW'].map(l => `<div style="text-align:center;padding:var(--space-4);border-radius:var(--radius-lg);background:var(--color-${l.toLowerCase()}-bg);color:var(--color-${l.toLowerCase()}-fg)">
+        <div style="font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700">${risks.filter(r=>r.resLevel===l).length}</div>
+        <div style="font-size:var(--text-xs);font-weight:600">${l}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+</script>
+
+  <!-- Portfolio Footer -->
+  <div style="position:fixed;bottom:0;right:0;padding:6px 14px;font-size:11px;color:var(--color-text-faint);background:var(--color-surface);border-top:1px solid var(--color-border);border-left:1px solid var(--color-border);border-radius:8px 0 0 0;z-index:100;">
+    Built by <a href="https://www.linkedin.com/in/gabrielsotero" target="_blank" style="color:var(--color-primary);text-decoration:none;">Gabriel Sotero de Almeida</a> · ISO 31000 · DORA · NIST RMF
+  </div>
+</body>
+</html>
