@@ -46,3 +46,12 @@ Built by a Compliance Analyst operating in EU AML/KYC and ICT risk regulatory en
 ---
 
 ## Risk Scoring Methodology
+
+Inherent Risk Score = Inherent Likelihood (1–5) × Inherent Impact (1–5)
+Residual Risk Score = Residual Likelihood (1–5) × Residual Impact (1–5)
+
+Risk Levels:
+CRITICAL ≥ 16 → Mandatory escalation to CISO/CRO within 24h
+HIGH 10–15 → Treatment plan required; Accept requires CRO approval
+MEDIUM 5–9 → Standard treatment with documented owner
+LOW 1–4 → Accept permissible with documented justification
