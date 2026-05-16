@@ -55,3 +55,46 @@ CRITICAL ≥ 16 → Mandatory escalation to CISO/CRO within 24h
 HIGH 10–15 → Treatment plan required; Accept requires CRO approval
 MEDIUM 5–9 → Standard treatment with documented owner
 LOW 1–4 → Accept permissible with documented justification
+
+
+> **Why this matters:** Many tools incorrectly calculate Residual Risk as `Inherent Score × (1 - Control Effectiveness%)`. This tool requires independent residual likelihood and impact inputs, producing a defensible, audit-ready score per ISO 31000.
+
+---
+
+## Pre-loaded Demo Risks
+
+1. **R-001** — Inadequate AML Transaction Monitoring (CRITICAL → MEDIUM)
+2. **R-002** — GDPR DSAR Backlog (HIGH → MEDIUM)
+3. **R-003** — Third-Party ICT Vendor Without DORA Compliance (HIGH → MEDIUM)
+4. **R-004** — Privileged Access Management — No MFA (HIGH → LOW)
+
+---
+
+## How to Use
+
+1. Open `index.html` in any modern browser — no build step, no dependencies
+2. Fill in risk name, category, inherent scores, control effectiveness, and residual scores
+3. Select risk treatment (Mitigate / Transfer / Accept / Avoid)
+4. Click **Add to Register**
+5. Navigate to **Heat Map** to visualise your risk portfolio
+6. Navigate to **Export** to download CSV or JSON
+
+---
+
+## Author
+
+**Gabriel Sotero de Almeida**
+Compliance Analyst, Accenture · GRC & Risk Management
+Operating in EU AML/KYC and ICT risk regulatory environments
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Gabriel_Sotero-0A66C2?style=flat&logo=linkedin)](https://www.linkedin.com/in/gabrielsotero)
+
+---
+
+## License
+
+MIT License — free to use, adapt, and build upon with attribution.
+
+
+
+
